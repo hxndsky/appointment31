@@ -9,11 +9,8 @@ cd appointment
 ```
 2. Install Dependencies
 ```
-composer require laravel/breeze --dev
-php artisan breeze:install
+copy folder github
 php artisan migrate
-npm install
-npm run dev
 ```
 4. Cek isi package.json lalu pastikan isi "devDependencies" sama dengan ini:
 ```
@@ -34,18 +31,17 @@ npm run dev
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=db_poli
+DB_DATABASE=appointment
 DB_USERNAME=root
-DB_PASSWORD=adminroot (kosongkan jika db tidak menggunakan password)
+DB_PASSWORD=
 ```
 6. Ganti APP_URL pada .env
 ```
-http://localhost:8000
+http://localhost
 ```
 7. Run app
 ```
 php artisan serve
-npm start
 ```
 
 ###### Notes: Pastikan semua dependencies sudah benar, dan lakukan ```npm run build``` sebelum deploy ke server production (opsional)

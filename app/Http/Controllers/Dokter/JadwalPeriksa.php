@@ -46,9 +46,18 @@ class JadwalPeriksa extends Controller
         // Cari id_dokter di tabel dokter berdasarkan email
         $dokter = KelolaDokter::where('email', $userEmail)->first();
 
-        // Jika tidak ditemukan, tampilkan pesan error
+        // Jika dokter tidak ditemukan, tampilkan pesan error
         if (!$dokter) {
             return back()->withErrors(['error' => 'Data dokter tidak ditemukan.']);
+        }
+
+        // Periksa apakah dokter sudah memiliki jadwal pada hari yang sama
+        $existingSchedule = DokterJadwalPeriksa::where('id_dokter', $dokter->id)
+            ->where('hari', $validated['hari'])
+            ->exists();
+
+        if ($existingSchedule) {
+            return back()->withErrors(['error' => 'Anda sudah memiliki jadwal pada hari tersebut.']);
         }
 
         // Simpan jadwal periksa
@@ -62,13 +71,6 @@ class JadwalPeriksa extends Controller
         return redirect()->route('dokter.jadwal-periksa.index')->with('success', 'Jadwal berhasil ditambahkan.');
     }
 
-    public function edit($id)
-    {
-        // Cari jadwal berdasarkan ID
-        $jadwal = DokterJadwalPeriksa::findOrFail($id);
-        return view('dokter.jadwal-periksa.edit', compact('jadwal'));
-    }
-
     public function update(Request $request, $id)
     {
         // Cari jadwal berdasarkan ID
@@ -77,7 +79,8 @@ class JadwalPeriksa extends Controller
         // Validasi apakah jadwal milik dokter yang login
         $dokter = KelolaDokter::where('email', Auth::user()->email)->first();
         if ($jadwal->id_dokter !== $dokter->id) {
-            return redirect()->route('dokter.jadwal-periksa.index')->withErrors(['error' => 'Anda tidak memiliki akses untuk mengubah jadwal ini.']);
+            return redirect()->route('dokter.jadwal-periksa.index')
+                ->withErrors(['error' => 'Anda tidak memiliki akses untuk mengubah jadwal ini.']);
         }
 
         // Validasi input
@@ -87,10 +90,27 @@ class JadwalPeriksa extends Controller
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
         ]);
 
+        // Periksa apakah ada jadwal lain pada hari yang sama
+        $existingSchedule = DokterJadwalPeriksa::where('id_dokter', $dokter->id)
+            ->where('hari', $validated['hari'])
+            ->where('id', '!=', $jadwal->id) // Kecualikan jadwal yang sedang diupdate
+            ->exists();
+
+        if ($existingSchedule) {
+            return back()->withErrors(['error' => 'Anda sudah memiliki jadwal pada hari tersebut.']);
+        }
+
         // Update jadwal
         $jadwal->update($validated);
 
         return redirect()->route('dokter.jadwal-periksa.index')->with('success', 'Jadwal berhasil diperbarui.');
+    }
+
+    public function edit($id)
+    {
+        // Cari jadwal berdasarkan ID
+        $jadwal = DokterJadwalPeriksa::findOrFail($id);
+        return view('dokter.jadwal-periksa.edit', compact('jadwal'));
     }
 
     public function delete($id)
