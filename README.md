@@ -4,6 +4,7 @@ Saya menggunakan Laravel Herd untuk pembuatan project, namun saya berikan tutori
 ## How to
 1. Create project 
 ```
+composer global require laravel/installer
 laravel new appointment
 cd appointment
 ```
